@@ -1,26 +1,34 @@
+/* ------------------------------------------------------------------------------------------------------------------ */
+/*                                                       imports                                                      */
+/* ------------------------------------------------------------------------------------------------------------------ */
+// eslint-disable-next-line
 import React, { Component } from "react";
-
+/* ------------------------------------------------------------------------------------------------------------------ */
+/*                                               main Selector component                                              */
+/* ------------------------------------------------------------------------------------------------------------------ */
 class Selector extends React.Component {
   constructor() {
     super();
     this.onChangeValue = this.onChangeValue.bind(this);
   }
-
+  /* ------------------------------------------------------------------------------------------------------------------ */
+  /*                                                   event handlers                                                   */
+  /* ------------------------------------------------------------------------------------------------------------------ */
   onChangeValue(event) {
-    // console.log(event.target.id);
     this.props.onSelectionChange(event.target.id);
   }
-
+  /* ------------------------------------------------------------------------------------------------------------------ */
+  /*                                                   render function                                                  */
+  /* ------------------------------------------------------------------------------------------------------------------ */
   render() {
-    const { id, lab, opt1, opt2 } = this.props.selector;
-    // console.log(lab + id);
+    const { lab, opt1, opt2 } = this.props.selector;
     return (
       <div>
         <span>{lab} </span>
-        {/* <div className="w-100 btn-group btn-block" onChange={() => {
-          this.props.onErrTypeChange(this.props.id); // This is here instead of the local state. Parent controls the component.
-        }}> */}
-        <div className="w-100 btn-group btn-block" onChange={this.onChangeValue}>
+        <div
+          className="w-100 btn-group btn-block"
+          onChange={this.onChangeValue}
+        >
           <input
             type="radio"
             name={lab}

@@ -1,27 +1,29 @@
+/* ------------------------------------------------------------------------------------------------------------------ */
+/*                                                       imports                                                      */
+/* ------------------------------------------------------------------------------------------------------------------ */
+// eslint-disable-next-line
 import React, { Component } from "react";
 import Prepender from "./prepender";
-
+/* ------------------------------------------------------------------------------------------------------------------ */
+/*                                               main NumForm component                                               */
+/* ------------------------------------------------------------------------------------------------------------------ */
 class NumForm extends React.Component {
   constructor(props) {
     super(props);
     // this.state = { value: "" };
-    this.handleChange = this.handleChange.bind(this);// This binding is necessary to make `this` work in the callback
+    this.handleChange = this.handleChange.bind(this); // This binding is necessary to make `this` work in the callback
   }
-  //Functions in javaScript are objects so they have objects and methods.
-  //Above is done to get access to the Counter object in function.
-  //We will be able to update "state" property.
-  //Solution to bind event handlers to "This"
-  //There is another way of doing this:
-  //   handleIncrement() {
-  //     console.log("Increment clicked", this);
-  //   }
-  ///////////////////////////////////////////////////////////
+  /* ------------------------------------------------------------------------------------------------------------------ */
+  /*                                                   event handlets                                                   */
+  /* ------------------------------------------------------------------------------------------------------------------ */
   handleChange(event) {
     this.props.onInputChange(event.target.value);
   }
-
+  /* ------------------------------------------------------------------------------------------------------------------ */
+  /*                                                   render function                                                  */
+  /* ------------------------------------------------------------------------------------------------------------------ */
   render() {
-    const { id, lab, plHold, prep, mess, readonly } = this.props.form;
+    const { lab, plHold, prep, mess, readonly } = this.props.form;
     const inp = this.props.inp;
 
     return (
