@@ -42,14 +42,15 @@ function rnSig(val, absErr) { //round value to appropriate count of significant 
 }
 
 function ConstructString(val, err, errType, sign, notation) {
+    //convert user ipnut to float
+    val = parseFloat(val);
+    err = parseFloat(err);
+    
   //check if inputs can be read as numbers
-  if (isNaN(parseFloat(val)) || isNaN(parseFloat(err))) {
+  if (isNaN(val) || isNaN(err)) {
     return "Please specify number and error: i.e. 1234 and 0.04."
   }
 
-  //convert user ipnut to float
-  val = parseFloat(val)
-  err = parseFloat(err)
   let absErr = 0,
     resString = "";
 
@@ -77,7 +78,7 @@ function ConstructString(val, err, errType, sign, notation) {
     if (sign === "±") {
       if (notation === "Sci.") {
 
-        resString = "(" + valStrSci + sign + errStrSci + ")" + "e" + (ord >= 0 ? "+" : "") + ord
+        resString = "(" + valStrSci + sign + errStrSci + ")e" + (ord >= 0 ? "+" : "") + ord
       }
       else {
         resString = valStr + sign + errStr
@@ -85,7 +86,7 @@ function ConstructString(val, err, errType, sign, notation) {
     }
     else {
       if (notation === "Sci.") {
-        resString = valStrSci + "(" + errDigits + ")" + "e" + (ord >= 0 ? "+" : "") + ord
+        resString = valStrSci + "(" + errDigits + ")e" + (ord >= 0 ? "+" : "") + ord
       }
       else {
         resString = valStr + "(" + errDigits + ")"
@@ -97,12 +98,10 @@ function ConstructString(val, err, errType, sign, notation) {
     return "Number shall be greater than its absolute error!"
   }
 }
-
+//main calculator component
 class Calculator extends React.Component {
   constructor(props) {
     super(props);
-    // this.handleValChange = this.handleValChange.bind(this); // used arrow functions instead
-    // this.handleErrChange = this.handleErrChange.bind(this); // used arrow functions instead
     this.state = {
       val: "", err: "", errType: "Rel.", notation: "Std.", sign: "±",
       selectors: [
@@ -178,10 +177,7 @@ class Calculator extends React.Component {
           </div>
           <div className="column has-text-right">
             <button
-              onClick={this.handleCalc} //onDelete is a property of Counter component called in Counters component.
-              // Here only the property onDelete of the counter, defined in counters component is called - <raising event handlers>
-              // The reference must be given as an arrow function, as we need to pass an id of the counter to be deleted.
-              // If instead of "this.props.counter.id" we would add 1, always counter of id 1 would be deleted.
+              onClick={this.handleCalc}
               className="btn btn-warning w-100"
             >
               Clear input
@@ -210,50 +206,18 @@ class Calculator extends React.Component {
           <div className="column">
             {/*---------------------------------------------------------------------SELECTOR - NUM NOTATION*/}
             <Selector key={1} selector={this.state.selectors[1]} onSelectionChange={this.handleNotationChange}></Selector>
-            {/* {this.state.selectors.map((selector) => (
-              <Selector key={selector.id} selector={selector}></Selector>
-            ))} */}
           </div>
           <div className="column">
             {/*---------------------------------------------------------------------SELECTORS - ERR NOTATION*/}
             <Selector key={2} selector={this.state.selectors[2]} onSelectionChange={this.handleSignChange}></Selector>
           </div>
         </div>
-        {/* <div className="columns">
-          <div className="column is-6">
-            <BoilingVerdict
-              celsius={parseFloat(val)} />
-          </div>
-        </div> */}
 
         {/*---------------------------------------------------------------------DELETE BTN*/}
         <hr className="w-100" />
       </div >
     );
   }
-
-  // Method to change button classes on click to make it a selector.
-  changeButtonClass() {
-    let classes = "btn btn-sm btn-";
-    classes += this.props.counter.value === 0 ? "primary" : "secondary"; // If counter value is 0 add "Warning", else add "primary".
-    return classes;
-  }
-
-  // Method to format counter based on value.
-  formatCount() {
-    // Object destructuring - picking a single property of an object and store it in a const.
-    const { value: value } = this.props.counter;
-    return value === 0 ? "Zero" : value; // Instead of plain text "Zero" it is also possible to return a JSX expression: <h1>Zero</h1>.
-    // Constant (const) can also store JSX expression. const x = <h1>Zero</h1>
-  }
-
-  ///////////////////////////////////////////////////////////
-  //   //[USAGE OF <componentDidMount>]
-  //   // Called after component is rendered into the DOM. Place to call data form the server.
-  //   componentDidMount() {
-  // //Ajax Call
-  //     this.setState({data from the server})
-  //   }
 }
 
 export default Calculator;
