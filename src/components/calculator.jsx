@@ -11,7 +11,7 @@ import NumForm from "./numform";
 /* ------------------------------------------------------------------------------------------------------------------ */
 /*round value to appropriate count of significant digits based on absolute error*/
 function rnSig(val, absErr) {
-  const t = Math.floor(Math.log10(0.5 / absErr)); //calc number of fractional significant digits based on absolute error
+  const t = Math.ceil(Math.log10(0.5 / absErr)); //calc number of fractional significant digits based on absolute error
   const ord = Math.floor(Math.log10(val)); //calc order of magnitude of the number
   // const sig = ord + t + 1; //calc number of significant digits by adding t to order of magnitude of the number
   /* initiate variables ----------------------------------------------------------------------------------------------- */
@@ -20,24 +20,44 @@ function rnSig(val, absErr) {
     valStr = val,
     valStrSci = val,
     errStr = absErr,
-    errStrSci = absErr;
+    errStrSci = absErr,
+    errDigits = 0;
   /* calculate base of scientific notation ---------------------------------------------------------------------------- */
   valSci = valSci / 10 ** ord;
   errSci = errSci / 10 ** ord;
   /* rounded value in decimal notation -------------------------------------------------------------------------------- */
   valStr = Math.round(valStr / 10 ** -t) * 10 ** -t;
   /* rounded value in scientific notation ----------------------------------------------------------------------------- */
-  valStrSci = Math.round(valSci / 10 ** (-t - ord)) * 10 ** (-t - ord);
-  valStrSci = valStrSci.toFixed(t + ord + 1);
+  valStrSci = Math.round(valSci / 10 ** -(t + ord)) * 10 ** -(t + ord);
   /* rounded error in decimal notation -------------------------------------------------------------------------------- */
-  errStr = Math.round(errStr / 10 ** -(t + 1)) * 10 ** -(t + 1);
+  errStr = Math.round(errStr / 10 ** -(t + 0)) * 10 ** -(t + 0);
   /* rounded error in scientific notation ----------------------------------------------------------------------------- */
-  errStrSci = errSci.toFixed(t + ord + 1);
+  errStrSci =
+    Math.round(errStrSci / 10 ** -(t + ord + 0)) * 10 ** -(t + ord + 0);
   /* where abs. error in decimal range, add "0" to match decimal places of the error ---------------------------------- */
   if (t >= 0) {
-    valStr = valStr.toFixed(t + 1);
-    errStr = errStr.toFixed(t + 1);
+    valStr = valStr.toFixed(t + 0);
+    errStr = errStr.toFixed(t + 0);
   }
+  if (t + ord >= 0) {
+    // valStrSci = valStrSci.toFixed(t + ord + 0);
+    // errStrSci = errSci.toFixed(t + ord + 0);
+    valStrSci = valStrSci.toFixed(t + ord + 0);
+    errStrSci = errSci.toFixed(t + ord + 0);
+  }
+
+  // console.log(
+  //   "ord: " +
+  //     ord +
+  //     "; t: " +
+  //     t +
+  //     "; sig: " +
+  //     sig +
+  //     "; val: " +
+  //     valStr +
+  //     "; err: " +
+  //     errStr
+  // );
 
   /* return object with formatted values ------------------------------------------------------------------------------ */
   return {
@@ -46,6 +66,8 @@ function rnSig(val, absErr) {
     valStrSci: valStrSci,
     errStrSci: errStrSci,
     ord: ord === Infinity ? 0 : ord,
+    t: t === Infinity ? 0 : t,
+    errDigits: errDigits,
   };
 }
 
@@ -59,7 +81,7 @@ function CheckNumberInput(inp) {
   if ((inp.match(/\./g) || []).length > 1) {
     return NaN;
   } else {
-    // inp = parseFloat(inp);
+    inp = parseFloat(inp);
     return inp;
   }
 }
@@ -89,19 +111,22 @@ function ConstructString(val, err, errType, sign, notation) {
   }
 
   /* check for absErr greater than a number and if absErr is not 0 ---------------------------------------------------- */
-  if (absErr > 0 && absErr < val) {
+  if (absErr <= 0 || absErr > val) {
+    return "Number shall be greater than its absolute error!";
+  } else {
     /* read data from object returned by function rnSig ----------------------------------------------------------------- */
     const num = rnSig(val, absErr);
     const valStr = num.valStr,
       valStrSci = num.valStrSci,
       errStr = num.errStr,
       errStrSci = num.errStrSci,
-      errDigits = (errStr / 10 ** Math.floor(Math.log10(errStr))).toFixed(0), //absolute error in form of string of least significant digits
-      ord = num.ord;
+      ord = num.ord,
+      t = num.t;
+    let errDigits = (errStr / 10 ** Math.floor(Math.log10(errStr))).toFixed(0);
 
     /* construct number representation based on user-selected settings -------------------------------------------------- */
-    if (sign === "±") {
-      if (notation === "Sci.") {
+    if (notation === "Sci.") {
+      if (sign === "±") {
         resString =
           "(" +
           valStrSci +
@@ -111,19 +136,21 @@ function ConstructString(val, err, errType, sign, notation) {
           (ord >= 0 ? "+" : "") +
           ord;
       } else {
-        resString = valStr + sign + errStr;
-      }
-    } else {
-      if (notation === "Sci.") {
         resString =
           valStrSci + "(" + errDigits + ")e" + (ord >= 0 ? "+" : "") + ord;
+      }
+    } else {
+      //absolute error in form of string of least significant digits
+      if (sign === "±") {
+        resString = valStr + sign + errStr;
       } else {
+        if (t <= 0) {
+          errDigits = errStr;
+        }
         resString = valStr + "(" + errDigits + ")";
       }
     }
     return resString;
-  } else {
-    return "Number shall be greater than its absolute error!";
   }
 }
 
@@ -134,8 +161,8 @@ class Calculator extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      val: "123",
-      err: "0.1",
+      val: "",
+      err: "",
       errType: "Rel.",
       notation: "Std.",
       sign: "±",
@@ -219,23 +246,23 @@ class Calculator extends React.Component {
       //IMPORTANT! Bulma's grid system is used to compy with Wordpress theme. Bootstrap is used for styling components.
       <div>
         <div className="columns">
-          <div className="column is-9 has-text-justified is-hidden-mobile">
+          <div className="column is-12 has-text-justified is-hidden-mobile">
             <p>
               This tool formats a given number so that it is rounded to an
               appropriate count of significant digits based on the given
-              uncertainty of the value. If you are interested in the formal and
-              mathematical background, please visit the{" "}
+              uncertainty of the value. If you are interested in how the
+              calculator works, please visit the{" "}
               <a href="https://mmielcarek.com/en/mat/rounding_numbers">
                 {" "}
                 blog.
               </a>
             </p>
           </div>
-          <div className="column has-text-right">
+          {/* <div className="column has-text-right">
             <button onClick={this.handleCalc} className="btn btn-warning w-100">
               Clear input
             </button>
-          </div>
+          </div> */}
         </div>
         <div className="columns">
           <div className="column is-6">
